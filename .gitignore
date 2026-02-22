@@ -3,6 +3,7 @@
 
 # Debug output
 debug_output/
+debug_output_4_1_mini/
 
 # UV virtual environment
 .venv
