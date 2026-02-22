@@ -9,6 +9,8 @@ Transforms complex text into easy-to-understand content with:
 
 import os
 import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -42,48 +44,73 @@ Text:
 """
 
 # ---------------------------------------------------------------------------
-# Step 2 – Rewrite extracted points in plain language
+# Step 2 – Organise logical flow
 # ---------------------------------------------------------------------------
 STEP2_SYSTEM = """\
-You are a plain-language rewriter. You will receive a numbered list of \
-points extracted from a text. Rewrite them so they are easy to read while \
-keeping every point accurate and complete.
+You are an expert editor focused on logical structure and flow. You will \
+receive a numbered list of points extracted from a text. Your ONLY job is \
+to reorganise them for clarity while keeping every point accurate and complete.
 """
 
 STEP2_USER = """\
-Rewrite the extracted points below following these strict rules:
+Reorganise the extracted points below. Follow these rules strictly:
 
-1. **Accuracy**: Keep EVERY point. Do NOT drop, merge, or invent information.
-2. **Sentence Length**: Every sentence must contain no more than 12 words. \
-Break longer sentences into shorter ones.
-3. **Common Language**: Use only simple, everyday words. If a technical term \
-is essential, briefly explain it in parentheses.
-4. **Logical Ordering**: Order items by importance, but if point A is needed \
-to understand point B, put A before B.
-5. **Smooth Transitions**: Add brief connecting words between points so the \
-reader can follow easily.
-6. **No Redundancy**: Remove duplicated ideas, but do NOT remove unique details.
-7. **No Ambiguity**: Use clear, precise language. If the original had \
-ambiguity, keep your note about it.
+1. **Accuracy first**: Keep EVERY point. Do NOT drop, merge, or invent \
+information.
+2. **Importance ordering**: Put the most important points first.
+3. **Logical dependencies**: If point A is needed to understand point B, \
+put A before B — even if B is more important.
+4. **Grouping**: Group closely related points together as sub-points.
+5. **Smooth transitions**: Add brief connecting words or phrases between \
+points and groups so a reader can follow the flow easily.
 
-Output format:
-- Section "Key Points": a numbered list of the rewritten points.
-- Section "Additional Details": any extra context, ambiguity notes, or \
-minor details that do not fit as key points. Write "None." if empty.
+Output a numbered list of the reorganised points. Keep the original wording \
+for now — do NOT simplify the language yet.
 
 Extracted points:
 {points}
 """
 
 # ---------------------------------------------------------------------------
-# Step 3 – Generate the Ultra Short Summary
+# Step 3 – Enhance detail quality
 # ---------------------------------------------------------------------------
 STEP3_SYSTEM = """\
+You are a plain-language editor. You will receive an ordered list of points. \
+Your job is to polish the language and separate key points from additional \
+details.
+"""
+
+STEP3_USER = """\
+Rewrite the ordered points below. Follow these rules strictly:
+
+1. **Sentence Length**: Every sentence must contain no more than 12 words. \
+Break longer sentences into shorter ones.
+2. **Common Language**: Use only simple, everyday words. If a technical term \
+is essential, briefly explain it in parentheses.
+3. **No Redundancy**: Remove duplicated ideas, but do NOT remove unique \
+details.
+4. **No Ambiguity**: Use clear, precise language.
+5. **Separate sections**:
+   - "Key Points": a numbered list of the main, critical points.
+   - "Additional Details": move non-critical points, minor context, \
+extra explanations of any unresolved ambiguities here. \
+Write "None." if empty.
+
+Output exactly those two sections.
+
+Ordered points:
+{points}
+"""
+
+# ---------------------------------------------------------------------------
+# Step 4 – Generate the Ultra Short Summary
+# ---------------------------------------------------------------------------
+STEP4_SYSTEM = """\
 You are a summarizer. You will receive simplified key points and additional \
 details. Write an ultra-short summary.
 """
 
-STEP3_USER = """\
+STEP4_USER = """\
 Based ONLY on the content below, write an "Ultra Short Summary" section.
 
 Rules:
@@ -98,9 +125,9 @@ Content:
 """
 
 # ---------------------------------------------------------------------------
-# Step 4 – Final validation
+# Step 5 – Final validation
 # ---------------------------------------------------------------------------
-STEP4_SYSTEM = """\
+STEP5_SYSTEM = """\
 You are a strict quality-assurance editor. You will receive:
   (A) The ORIGINAL text.
   (B) A simplified version with three sections.
@@ -108,7 +135,7 @@ You are a strict quality-assurance editor. You will receive:
 Your job is to verify and fix the simplified version.
 """
 
-STEP4_USER = """\
+STEP5_USER = """\
 Compare the simplified version against the original text and fix any issues.
 
 Checks to perform:
@@ -154,6 +181,7 @@ class TextSimplifier:
         api_key: Optional[str] = None,
         deployment: Optional[str] = None,
         api_version: Optional[str] = None,
+        debug_dir: Optional[str] = None,
     ):
         self.endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self.api_key = api_key or os.getenv("AZURE_OPENAI_KEY", "")
@@ -165,6 +193,8 @@ class TextSimplifier:
                 "Azure OpenAI credentials are required. "
                 "Set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY in your .env file."
             )
+
+        self.debug_dir = Path(debug_dir) if debug_dir else Path("debug_output")
 
         self.client = AzureOpenAI(
             azure_endpoint=self.endpoint,
@@ -196,21 +226,33 @@ class TextSimplifier:
 
         if self._is_o3:
             # o3-mini uses max_completion_tokens instead of max_tokens
-            kwargs["max_completion_tokens"] = 4096
+            kwargs["max_completion_tokens"] = 8192
         else:
-            kwargs["max_tokens"] = 4096
-            kwargs["temperature"] = 0.3
+            kwargs["max_tokens"] = 8192
+            kwargs["temperature"] = 0.1
 
         response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content or ""
+
+    def _save_debug(self, run_dir: Path, filename: str, content: str) -> None:
+        """Save intermediate output to a debug file."""
+        run_dir.mkdir(parents=True, exist_ok=True)
+        filepath = run_dir / filename
+        filepath.write_text(content, encoding="utf-8")
+        print(f"  [debug] Saved {filepath}")
 
     def simplify(self, text: str) -> str:
         """Simplify the given text through a multi-step pipeline.
 
         Step 1: Extract all points from the original text accurately.
-        Step 2: Rewrite the points in plain, simple language.
-        Step 3: Generate an ultra-short summary from the rewritten points.
-        Step 4: Validate accuracy, completeness, and all writing rules.
+        Step 2: Organise logical flow (ordering, grouping, transitions).
+        Step 3: Enhance detail quality (simplify language, split sentences,
+                 separate key points from additional details).
+        Step 4: Generate an ultra-short summary from the polished content.
+        Step 5: Validate accuracy, completeness, and all writing rules.
+
+        Intermediate results from every step are saved to the debug
+        output directory for inspection.
 
         Args:
             text: The complex text to simplify.
@@ -221,32 +263,51 @@ class TextSimplifier:
         if not text.strip():
             return ""
 
+        # Create a timestamped directory for this run
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_dir = self.debug_dir / timestamp
+
+        # Save the original input
+        self._save_debug(run_dir, "step0_input.txt", text)
+
         # Step 1 – Extract every point from the original text
         extracted = self._call_llm(
             STEP1_SYSTEM,
             STEP1_USER.format(text=text),
         )
+        self._save_debug(run_dir, "step1_extracted_points.txt", extracted)
 
-        # Step 2 – Rewrite extracted points in plain language
-        rewritten = self._call_llm(
+        # Step 2 – Organise logical flow
+        organised = self._call_llm(
             STEP2_SYSTEM,
             STEP2_USER.format(points=extracted),
         )
+        self._save_debug(run_dir, "step2_organised_flow.txt", organised)
 
-        # Step 3 – Generate the ultra-short summary
-        summary = self._call_llm(
+        # Step 3 – Enhance detail quality
+        polished = self._call_llm(
             STEP3_SYSTEM,
-            STEP3_USER.format(content=rewritten),
+            STEP3_USER.format(points=organised),
         )
+        self._save_debug(run_dir, "step3_polished.txt", polished)
+
+        # Step 4 – Generate the ultra-short summary
+        summary = self._call_llm(
+            STEP4_SYSTEM,
+            STEP4_USER.format(content=polished),
+        )
+        self._save_debug(run_dir, "step4_summary.txt", summary)
 
         # Combine into final draft
-        draft = f"{summary.strip()}\n\n{rewritten.strip()}"
+        draft = f"{summary.strip()}\n\n{polished.strip()}"
+        self._save_debug(run_dir, "step4_draft_combined.txt", draft)
 
-        # Step 4 – Final validation against the original
+        # Step 5 – Final validation against the original
         validated = self._call_llm(
-            STEP4_SYSTEM,
-            STEP4_USER.format(original=text, simplified=draft),
+            STEP5_SYSTEM,
+            STEP5_USER.format(original=text, simplified=draft),
         )
+        self._save_debug(run_dir, "step5_final_output.txt", validated.strip())
 
         return validated.strip()
 

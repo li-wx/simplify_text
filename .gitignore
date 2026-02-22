@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# Debug output
+debug_output/
+
 # UV virtual environment
 .venv
 
