@@ -23,6 +23,8 @@ classifiers = [
 dependencies = [
     "openai>=2.21.0",
     "python-dotenv>=1.0.0",
+    "flask>=3.0.0",
+    "gunicorn>=22.0.0",
 ]
 
 [project.urls]
@@ -40,7 +42,12 @@ build-backend = "hatchling.build"
 packages = ["."]
 include = [
     "main.py",
+    "main_4_1_mini.py",
+    "app.py",
+    "simplifier.py",
+    "prompts.py",
     "test_simplifier.py",
+    "templates/**",
 ]
 
 [dependency-groups]

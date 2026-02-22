@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Simplifier</title>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --error: #dc2626;
+            --success: #16a34a;
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.15s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .model-select {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .model-select label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--muted);
+        }
+        .model-select select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, opacity 0.15s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--bg); }
+
+        .status {
+            font-size: 0.9rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .result-area {
+            display: none;
+        }
+        .result-area.visible { display: block; }
+
+        .result-content {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            min-height: 120px;
+        }
+
+        .error-msg {
+            color: var(--error);
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+
+        .meta {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        .char-count.over {
+            color: var(--error);
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Text Simplifier</h1>
+            <p>Paste complex text and get an easy-to-read version with key points</p>
+        </header>
+
+        <!-- Input -->
+        <div class="card">
+            <div class="card-title">Input</div>
+            <textarea id="inputText" maxlength="2000" placeholder="Paste your text here…"></textarea>
+            <div class="char-count" id="charCount">0 / 2 000</div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; flex-wrap:wrap; gap:0.75rem;">
+                <div class="controls">
+                    <div class="model-select">
+                        <label for="modelSelect">Model:</label>
+                        <select id="modelSelect">
+                            {% for key, cfg in models.items() %}
+                            <option value="{{ key }}" {% if key == default_model %}selected{% endif %}>
+                                {{ cfg.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="simplifyBtn" onclick="simplify()">
+                        Simplify
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" id="errorMsg"></div>
+
+        <!-- Output -->
+        <div class="card result-area" id="resultCard">
+            <div class="card-title">Output</div>
+            <div class="result-content" id="resultContent"></div>
+            <div class="meta" id="resultMeta"></div>
+        </div>
+
+        <footer>
+            Text Simplifier &mdash; Powered by Azure OpenAI
+        </footer>
+    </div>
+
+    <script>
+        const inputEl   = document.getElementById('inputText');
+        const modelEl   = document.getElementById('modelSelect');
+        const btnEl     = document.getElementById('simplifyBtn');
+        const statusEl  = document.getElementById('status');
+        const errorEl   = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
+        const resultEl  = document.getElementById('resultContent');
+        const metaEl    = document.getElementById('resultMeta');
+
+        const MAX_CHARS = 2000;
+        const charCountEl = document.getElementById('charCount');
+
+        function updateCharCount() {
+            const len = inputEl.value.length;
+            charCountEl.textContent = `${len.toLocaleString()} / 2 000`;
+            charCountEl.classList.toggle('over', len > MAX_CHARS);
+        }
+        inputEl.addEventListener('input', updateCharCount);
+
+        async function simplify() {
+            const text = inputEl.value.trim();
+            if (!text) { showError('Please enter some text.'); return; }
+            if (text.length > MAX_CHARS) { showError(`Text exceeds the ${MAX_CHARS.toLocaleString()} character limit.`); return; }
+
+            hideError();
+            resultCard.classList.remove('visible');
+            btnEl.disabled = true;
+            statusEl.innerHTML = '<span class="spinner"></span> Processing… this may take a minute';
+
+            const startTime = performance.now();
+
+            try {
+                const res = await fetch('/simplify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, model: modelEl.value }),
+                });
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    showError(data.error || 'Something went wrong.');
+                    return;
+                }
+
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+                resultEl.textContent = data.result;
+                metaEl.textContent = `Model: ${data.model} · ${elapsed}s`;
+                resultCard.classList.add('visible');
+
+            } catch (err) {
+                showError(`Network error: ${err.message}`);
+            } finally {
+                btnEl.disabled = false;
+                statusEl.innerHTML = '';
+            }
+        }
+
+        function clearAll() {
+            inputEl.value = '';
+            resultCard.classList.remove('visible');
+            hideError();
+            statusEl.innerHTML = '';
+        }
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.classList.add('visible');
+        }
+        function hideError() {
+            errorEl.classList.remove('visible');
+        }
+
+        /* Ctrl/Cmd + Enter to submit */
+        inputEl.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') simplify();
+        });
+    </script>
+</body>
+</html>
