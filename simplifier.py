@@ -93,7 +93,7 @@ class TextSimplifier:
             kwargs["max_completion_tokens"] = 16384
         else:
             kwargs["max_tokens"] = 16384
-            kwargs["temperature"] = 0.1
+            kwargs["temperature"] = 0.05
 
         response = self.client.chat.completions.create(**kwargs)
         return response.choices[0].message.content or ""
