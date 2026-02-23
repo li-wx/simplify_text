@@ -247,7 +247,8 @@
         </div>
 
         <footer>
-            Text Simplifier &mdash; Powered by Azure OpenAI
+            <p>Information entered is not stored and is only used for generating the simplified text.</p>
+            <p>Generated text is not guaranteed to be 100% accurate or complete.</p>
         </footer>
     </div>
 
@@ -279,7 +280,7 @@
             hideError();
             resultCard.classList.remove('visible');
             btnEl.disabled = true;
-            statusEl.innerHTML = '<span class="spinner"></span> Processing… this may take a minute';
+            statusEl.innerHTML = '<span class="spinner"></span> Reading, processing, and validating…';
 
             const startTime = performance.now();
 
@@ -298,7 +299,7 @@
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
                 resultEl.innerHTML = marked.parse(data.result);
-                metaEl.textContent = `Model: ${data.model} · ${elapsed}s`;
+                metaEl.textContent = `Completed in ${elapsed}s`;
                 resultCard.classList.add('visible');
 
             } catch (err) {
