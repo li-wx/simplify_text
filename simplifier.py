@@ -39,6 +39,7 @@ class TextSimplifier:
         deployment: Optional[str] = None,
         api_version: Optional[str] = None,
         debug_dir: Optional[str] = None,
+        save_debug: bool = True,
     ):
         self.endpoint = endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self.api_key = api_key or os.getenv("AZURE_OPENAI_KEY", "")
@@ -58,6 +59,7 @@ class TextSimplifier:
             )
 
         self.debug_dir = Path(debug_dir) if debug_dir else Path("debug_output")
+        self.save_debug = save_debug
 
         self.client = AzureOpenAI(
             azure_endpoint=self.endpoint,
@@ -103,7 +105,9 @@ class TextSimplifier:
     # ------------------------------------------------------------------
 
     def _save_debug(self, run_dir: Path, filename: str, content: str) -> None:
-        """Save intermediate output to a debug file."""
+        """Save intermediate output to a debug file (if debug is enabled)."""
+        if not self.save_debug:
+            return
         run_dir.mkdir(parents=True, exist_ok=True)
         filepath = run_dir / filename
         filepath.write_text(content, encoding="utf-8")

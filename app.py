@@ -50,6 +50,7 @@ def _get_simplifier(model_key: str) -> TextSimplifier:
         deployment=cfg["deployment"],
         api_version=cfg["api_version"],
         debug_dir=cfg["debug_dir"],
+        save_debug=False,
     )
 
 
@@ -73,7 +74,7 @@ def simplify():
     if not text:
         return jsonify({"error": "No text provided."}), 400
 
-    if len(text) > 2000:
+    if len(text) > 3000:
         return jsonify({"error": "Text exceeds the 2 000 character limit."}), 400
 
     try:

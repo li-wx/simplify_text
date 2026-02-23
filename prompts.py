@@ -87,15 +87,15 @@ Ordered points:
 """
 
 # ---------------------------------------------------------------------------
-# Step 4 – Generate the Ultra Short Summary
+# Step 4 – Generate the Summary
 # ---------------------------------------------------------------------------
 STEP4_SYSTEM = """\
 You are a summarizer. You will receive simplified key points and additional \
-details. Write an ultra-short summary.
+details. Write a short summary.
 """
 
 STEP4_USER = """\
-Based ONLY on the content below, write an "Ultra Short Summary" section.
+Based ONLY on the content below, write a "Summary" section.
 
 Rules:
 - At most 3 sentences, written as a single paragraph (no bullet points 
@@ -139,7 +139,7 @@ note it in Additional Details.
 
 Output exactly these three sections and nothing else:
 
-### Ultra Short Summary
+### Summary
 (at most 3 sentences, written as a single paragraph)
 
 ### Key Points
