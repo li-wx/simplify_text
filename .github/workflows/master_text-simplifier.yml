@@ -63,4 +63,4 @@ jobs:
         with:
           app-name: 'text-simplifier'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FF2B69FB97EB47BA91DF63298189016C }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_43F3C08FD39D45E1B8A0F81814784623 }}
