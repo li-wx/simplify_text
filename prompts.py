@@ -75,7 +75,7 @@ is essential, briefly explain it in parentheses.
 details.
 4. **No Ambiguity**: Use clear, precise language.
 5. **Separate sections**:
-   - "Key Points": list main, critical points only.
+   - "Key Points": list main, critical points only. Include at most 10 points here.
    - "Additional Details": move non-critical points, minor context, \
 extra explanations of any unresolved ambiguities here. \
 Write "None." if empty.
@@ -100,7 +100,7 @@ Based ONLY on the content below, write a "Summary" section.
 Rules:
 - At most 3 sentences, written as a single paragraph (no bullet points 
 or line breaks between sentences).
-- Every sentence must contain no more than 12 words.
+- Every sentence must contain at most 12 words. Do not write long sentences.
 - Use only simple, everyday words.
 - Do NOT add any information not present below.
 
@@ -140,7 +140,7 @@ note it in Additional Details.
 Output exactly these three sections and nothing else:
 
 ### Summary
-(at most 3 sentences, written as a single paragraph)
+(at most 3 sentences, each sentence with at most 12 words, written as a single paragraph)
 
 ### Key Points
 (numbered list)
