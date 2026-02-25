@@ -28,60 +28,85 @@ Text:
 """
 
 # ---------------------------------------------------------------------------
-# Step 2 – Organise logical flow
+# Step 2 – Deduplicate, merge, and organise logical flow
 # ---------------------------------------------------------------------------
 STEP2_SYSTEM = """\
-You are an expert editor focused on logical structure and flow. You will \
-receive a numbered list of points extracted from a text. Your ONLY job is \
-to reorganise them for clarity while keeping every point accurate and complete.
+You are an expert editor focused on removing redundancy and creating clear \
+logical structure. You will receive a numbered list of extracted points. \
+Your job is to merge overlapping points and then organise the result.
 """
 
 STEP2_USER = """\
-Reorganise the extracted points below. Follow these rules strictly:
+Process the extracted points below in two phases.
 
-1. **Accuracy first**: Keep EVERY point. Do NOT drop, merge, or invent \
-information.
-2. **Importance ordering**: Put the most important points first.
-3. **Logical dependencies**: If point A is needed to understand point B, \
+**Phase A — Deduplicate and merge:**
+- Identify points that convey the same or very similar information.
+- Merge overlapping points into a single, more complete point. Keep the \
+most informative wording.
+- If two points share the same core idea but one adds a small detail, \
+combine them into one point that includes the detail.
+- After merging, every remaining point should be *clearly distinct* from \
+every other point. If you can describe two points with the same one-line \
+summary, they must be merged.
+
+**Phase B — Organise:**
+1. **Importance ordering**: Put the most important points first.
+2. **Logical dependencies**: If point A is needed to understand point B, \
 put A before B — even if B is more important.
-4. **Grouping**: Group closely related points together as sub-points.
-5. **Smooth transitions**: Add brief connecting words or phrases between \
-points and groups so a reader can follow the flow easily.
+3. **Grouping**: Group closely related points together as sub-points.
+4. **Smooth transitions**: Add brief connecting words between groups.
 
-Output a numbered list of the reorganised points. Keep the original wording \
-for now — do NOT simplify the language yet.
+**Critical rule**: Keep EVERY *unique* piece of information. Do NOT drop \
+facts — only merge duplicates. Do NOT simplify the language yet.
+
+Output a numbered list of the deduplicated and organised points.
 
 Extracted points:
 {points}
 """
 
 # ---------------------------------------------------------------------------
-# Step 3 – Enhance detail quality
+# Step 3 – Simplify language and classify into Key Points vs Additional Details
 # ---------------------------------------------------------------------------
 STEP3_SYSTEM = """\
-You are a plain-language editor. You will receive an ordered list of points. \
-Your job is to polish the language and separate key points from additional \
-details.
+You are a plain-language editor. You will receive an ordered list of \
+deduplicated points. Your job is to simplify the language and strictly \
+separate key points from additional details.
 """
 
 STEP3_USER = """\
-Rewrite the ordered points below. Follow these rules strictly:
+Rewrite the points below. Follow these rules strictly:
 
-1. **Sentence Length**: Every sentence must contain no more than 12 words. \
-Break longer sentences into shorter ones.
-2. **Common Language**: Use only simple, everyday words. If a technical term \
-is essential, briefly explain it in parentheses.
-3. **No Redundancy**: Remove duplicated ideas, but do NOT remove unique \
-details.
-4. **No Ambiguity**: Use clear, precise language.
-5. **Separate sections**:
-   - "Key Points": list main, critical points only. Include at most 9 points here. \
-    Do not list more than 9 points in this section.
-   - "Additional Details": move non-critical points, minor context, \
-extra explanations of any unresolved ambiguities here. \
-Write "None." if empty.
+**Language rules (apply to ALL points):**
+1. Every sentence must contain no more than 12 words. Break longer ones.
+2. Use only simple, everyday words. If a technical term is essential, \
+briefly explain it in parentheses.
+3. Use clear, precise language with no ambiguity.
 
-Output exactly those two sections.
+**Classification rules — read carefully:**
+
+"Key Points" must contain ONLY the most essential information — the points \
+a reader absolutely must know to understand the core message. Apply this \
+test: *"If I remove this point, does the reader lose a critical piece of \
+the main message?"* If no, it belongs in Additional Details.
+
+- **Key Points**: List at most 8 points. Fewer is better. Aim for 5–7 \
+when possible. Each point must be clearly distinct from every other point. \
+If two points feel related, consider whether one belongs in Additional \
+Details instead.
+- **Additional Details**: Everything else goes here — supporting context, \
+minor qualifications, extra explanations, elaborations on key points, \
+edge cases, and any unresolved ambiguities. Write "None." if truly empty.
+
+**When in doubt, place the point in Additional Details.**
+
+Output exactly these two sections:
+
+Key Points:
+(numbered list — at most 8, aim for 5–7)
+
+Additional Details:
+(numbered list, or "None.")
 
 Ordered points:
 {points}
@@ -99,10 +124,11 @@ STEP4_USER = """\
 Based ONLY on the content below, write a "Summary" section.
 
 Rules:
-- At most 3 sentences, written as a single paragraph (no bullet points 
+- At most 3 sentences, written as a single paragraph (no bullet points \
 or line breaks between sentences).
 - Every sentence must contain at most 12 words. Do not write long sentences.
 - Use only simple, everyday words.
+- Focus on the core message from Key Points only.
 - Do NOT add any information not present below.
 
 Content:
@@ -123,31 +149,45 @@ Your job is to verify and fix the simplified version.
 STEP5_USER = """\
 Compare the simplified version against the original text and fix any issues.
 
-Checks to perform:
-1. **Accuracy**: Every claim in the output must be supported by the original. \
-Remove or correct anything the original does not say. Flag nothing as missing \
-only if the original actually states it.
-2. **Completeness**: Every distinct point from the original must appear in \
-Key Points or Additional Details. If something is missing, add it.
-3. **Sentence Length**: Every sentence must have no more than 12 words. Split \
-any that are longer.
-4. **Common Language**: Replace any uncommon words with everyday equivalents.
-5. **Logical Order**: Rearrange if needed so prerequisite ideas come first.
-6. **Smooth Transitions**: Add brief connectors between points if needed.
-7. **No Redundancy**: Remove duplicated ideas.
-8. **No Ambiguity**: Clarify vague references. If inherent ambiguity exists, \
-note it in Additional Details.
+Checks to perform (in this order):
+
+1. **Redundancy (HIGHEST PRIORITY)**: Read every point in Key Points and \
+Additional Details. If two points make essentially the same claim — even \
+with different wording — merge them into one or remove the duplicate. \
+Also check across sections: if a Key Point and an Additional Detail say \
+the same thing, keep only the Key Point version.
+
+2. **Key Points count**: Key Points should contain at most 8 items, \
+ideally 5–7. If there are more than 8, move the least essential ones to \
+Additional Details. Each key point must be clearly distinct from every \
+other key point.
+
+3. **Accuracy**: Every claim must be supported by the original text. \
+Remove or correct anything the original does not say.
+
+4. **Completeness**: Every distinct point from the original must appear \
+in Key Points or Additional Details. If something is genuinely missing, \
+add it to the appropriate section.
+
+5. **Sentence length**: Every sentence must have no more than 12 words. \
+Split any that are longer.
+
+6. **Common language**: Replace any uncommon words with everyday equivalents.
+
+7. **Logical order**: Rearrange if needed so prerequisite ideas come first.
+
+8. **Smooth transitions**: Add brief connectors between points if needed.
 
 Output exactly these three sections and nothing else:
 
 ### Summary
-(at most 3 sentences, each sentence with at most 12 words, written as a single paragraph)
+(at most 3 sentences, each with at most 12 words, single paragraph)
 
 ### Key Points
-(numbered list)
+(numbered list — at most 8, ideally 5–7)
 
 ### Additional Details
-(list, or "None.")
+(numbered list, or "None.")
 
 --- ORIGINAL TEXT ---
 {original}
