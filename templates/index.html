@@ -4,268 +4,460 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Simplifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f5f7fa;
+            --bg: #f0f2f5;
             --card: #ffffff;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --text: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --error: #dc2626;
-            --success: #16a34a;
-            --radius: 10px;
+            --primary: #4f6ef7;
+            --primary-hover: #3b5de7;
+            --primary-soft: rgba(79, 110, 247, .08);
+            --text: #1a2332;
+            --text-secondary: #4a5568;
+            --muted: #8894a7;
+            --border: #e4e8ee;
+            --border-light: #f0f2f5;
+            --error: #e53e3e;
+            --error-bg: #fff5f5;
+            --success: #38a169;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --shadow-card: 0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04);
+            --shadow-card-hover: 0 2px 8px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+            --shadow-btn: 0 1px 3px rgba(79, 110, 247, .2);
+            --shadow-btn-hover: 0 4px 14px rgba(79, 110, 247, .3);
+            --ease: cubic-bezier(.4, 0, .2, 1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 760px;
             margin: 0 auto;
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.25rem 1.5rem;
         }
 
+        /* ---- Header ---- */
         header {
             text-align: center;
-            margin-bottom: 2rem;
-        }
-        header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        header p {
-            color: var(--muted);
-            font-size: 0.95rem;
+            margin-bottom: 2.25rem;
         }
 
+        .header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            background: var(--primary-soft);
+            border-radius: 14px;
+            margin-bottom: .75rem;
+        }
+
+        .header-icon svg {
+            width: 26px;
+            height: 26px;
+            color: var(--primary);
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -.025em;
+            color: var(--text);
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: .9rem;
+            margin-top: .25rem;
+            font-weight: 400;
+        }
+
+        /* ---- Cards ---- */
         .card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow-card);
+            transition: box-shadow .25s var(--ease);
         }
 
-        .card-title {
-            font-size: 0.85rem;
+        .card:hover { box-shadow: var(--shadow-card-hover); }
+
+        .card-label {
+            font-size: .75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: .07em;
             color: var(--muted);
-            margin-bottom: 0.75rem;
+            margin-bottom: .65rem;
         }
 
+        /* ---- Textarea ---- */
         textarea {
             width: 100%;
-            min-height: 180px;
-            padding: 0.85rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            min-height: 170px;
+            padding: .85rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
             font-family: inherit;
-            font-size: 0.95rem;
-            line-height: 1.6;
+            font-size: .93rem;
+            line-height: 1.65;
             resize: vertical;
-            transition: border-color 0.15s;
+            color: var(--text);
+            background: #fafbfc;
+            transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
         }
+
+        textarea::placeholder { color: #b3bcc9; }
+
         textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+            background: #fff;
         }
 
-        .controls {
+        /* ---- Input footer ---- */
+        .input-footer {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: space-between;
+            margin-top: .75rem;
             flex-wrap: wrap;
+            gap: .5rem;
         }
 
+        .char-count {
+            font-size: .78rem;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .char-count.over { color: var(--error); font-weight: 600; }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .hint {
+            font-size: .75rem;
+            color: #bcc3ce;
+            margin-top: .4rem;
+        }
+
+        /* ---- Buttons ---- */
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.65rem 1.5rem;
+            justify-content: center;
+            gap: .4rem;
+            padding: .58rem 1.4rem;
             border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.15s, opacity 0.15s;
+            transition: all .2s var(--ease);
         }
+
         .btn-primary {
             background: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            color: #fff;
+            box-shadow: var(--shadow-btn);
         }
 
-        .btn-secondary {
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-btn-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-primary:disabled {
+            background: #a0aec0;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ghost {
             background: transparent;
             color: var(--muted);
-            border: 1px solid var(--border);
+            border: 1.5px solid var(--border);
         }
-        .btn-secondary:hover { background: var(--bg); }
 
-        .status {
-            font-size: 0.9rem;
+        .btn-ghost:hover {
+            background: var(--border-light);
+            color: var(--text-secondary);
+            border-color: #d0d5dd;
+        }
+
+        .btn-copy {
+            background: transparent;
             color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+            border: 1.5px solid var(--border);
+            padding: .35rem .85rem;
+            font-size: .8rem;
+            border-radius: 8px;
         }
-        .status .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border);
-            border-top: 2px solid var(--primary);
+
+        .btn-copy:hover {
+            background: var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        /* ---- Spinner / progress ---- */
+        .spinner-wrap {
+            display: none;
+            text-align: center;
+            padding: 2rem 1rem;
+            animation: fadeIn .3s var(--ease);
+        }
+
+        .spinner-wrap.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin .75s linear infinite;
+            margin: 0 auto .75rem;
         }
+
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        .spinner-msg {
+            font-size: .88rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-top: .2rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ---- Error ---- */
+        .error-msg {
+            display: none;
+            background: var(--error-bg);
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            padding: .7rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: .88rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            animation: fadeIn .25s var(--ease);
+        }
+
+        .error-msg.visible { display: block; }
+
+        /* ---- Result card ---- */
         .result-area {
             display: none;
+            animation: fadeIn .35s var(--ease);
         }
+
         .result-area.visible { display: block; }
 
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .85rem;
+        }
+
+        .result-header .label-row {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+        }
+
+        .result-header .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .result-header .card-label { margin-bottom: 0; }
+
         .result-content {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            padding: 1rem;
-            background: var(--bg);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            min-height: 120px;
+            font-size: .93rem;
+            line-height: 1.75;
+            color: var(--text);
         }
 
         .result-content h3 {
-            font-size: 1.05rem;
+            font-size: .98rem;
+            font-weight: 600;
             color: var(--primary);
-            margin-top: 1.25rem;
-            margin-bottom: 0.4rem;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 0.25rem;
+            margin-top: 1.4rem;
+            margin-bottom: .45rem;
+            padding-bottom: .3rem;
+            border-bottom: 2px solid var(--primary-soft);
         }
+
         .result-content h3:first-child { margin-top: 0; }
 
         .result-content p {
-            margin-bottom: 0.5rem;
+            margin-bottom: .55rem;
+            color: var(--text-secondary);
         }
 
         .result-content ol,
         .result-content ul {
-            margin-left: 1.5rem;
-            margin-bottom: 0.5rem;
+            margin-left: 1.4rem;
+            margin-bottom: .6rem;
         }
 
         .result-content li {
-            margin-bottom: 0.3rem;
+            margin-bottom: .3rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
         }
 
-        .error-msg {
-            color: var(--error);
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .error-msg.visible { display: block; }
-
-        .meta {
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        .char-count {
-            text-align: right;
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-top: 0.25rem;
-        }
-        .char-count.over {
-            color: var(--error);
+        .result-content li::marker {
+            color: var(--primary);
             font-weight: 600;
         }
 
+        .result-meta {
+            text-align: right;
+            font-size: .76rem;
+            color: var(--muted);
+            margin-top: .75rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ---- Footer ---- */
         footer {
             text-align: center;
-            color: var(--muted);
-            font-size: 0.8rem;
-            margin-top: 2rem;
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            font-size: .75rem;
+            color: #a0a8b4;
+            line-height: 1.7;
+            margin-bottom: .1rem;
+        }
+
+        footer a {
+            color: #0a66c2;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color .15s;
+        }
+
+        footer a:hover { color: #004182; text-decoration: underline; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 600px) {
+            .container { padding: 1.5rem .75rem 1rem; }
+            header h1 { font-size: 1.35rem; }
+            .card { padding: 1.15rem; }
+            textarea { min-height: 140px; }
+            .input-footer { flex-direction: column; align-items: stretch; }
+            .input-actions { justify-content: flex-end; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Text Simplifier</h1>
-            <p>Paste complex text and get an easy-to-read version with key points</p>
-        </header>
-
-        <!-- Input -->
-        <div class="card">
-            <div class="card-title">Input</div>
-            <textarea id="inputText" maxlength="3000" placeholder="Paste your text here…"></textarea>
-            <div class="char-count" id="charCount">0 / 3 000</div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; flex-wrap:wrap; gap:0.75rem;">
-                <div class="controls">
-                    <button class="btn btn-primary" id="simplifyBtn" onclick="simplify()">
-                        Simplify
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
-                </div>
-                <div class="status" id="status"></div>
+            <div class="header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
             </div>
-        </div>
+            <h1>Text Simplifier</h1>
+            <p>Transform complex text into clear, plain language</p>
+        </header>
 
         <!-- Error -->
         <div class="error-msg" id="errorMsg"></div>
 
+        <!-- Input -->
+        <div class="card">
+            <div class="card-label">Input</div>
+            <textarea id="inputText" maxlength="3000" placeholder="Paste your text here (max 3 000 characters)…"></textarea>
+            <div class="input-footer">
+                <span class="char-count" id="charCount">0 / 3 000</span>
+                <div class="input-actions">
+                    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+                    <button class="btn btn-primary" id="simplifyBtn" onclick="simplify()">
+                        Simplify
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="hint">Ctrl + Enter to submit</div>
+        </div>
+
+        <!-- Spinner -->
+        <div class="spinner-wrap" id="spinnerWrap">
+            <div class="spinner"></div>
+            <div class="spinner-msg">Processing… this may take up to 20 seconds.</div>
+        </div>
+
         <!-- Output -->
         <div class="card result-area" id="resultCard">
-            <div class="card-title">Output</div>
+            <div class="result-header">
+                <div class="label-row">
+                    <span class="dot"></span>
+                    <span class="card-label">Output</span>
+                </div>
+                <button class="btn btn-copy" onclick="copyResult()">
+                    <span id="copyLabel">Copy</span>
+                </button>
+            </div>
             <div class="result-content" id="resultContent"></div>
-            <div class="meta" id="resultMeta"></div>
+            <div class="result-meta" id="resultMeta"></div>
         </div>
 
         <footer>
             <p>Your input is not stored or shared. It is used solely for generating the simplified text.</p>
             <p>Output is AI-generated and may not be fully accurate or complete. Please verify before use.</p>
             <p>This is a personal project with limited processing capacity. Thank you for your patience.</p>
-            <p>Built by <a href="https://www.linkedin.com/in/weixuan-li-8b8b0038/" target="_blank" rel="noopener noreferrer" style="color:#0a66c2; text-decoration:none;">Weixuan Li</a></p>
+            <p>Built by <a href="https://www.linkedin.com/in/weixuan-li-8b8b0038/" target="_blank" rel="noopener noreferrer">Weixuan Li</a></p>
         </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        const inputEl   = document.getElementById('inputText');
-        const btnEl     = document.getElementById('simplifyBtn');
-        const statusEl  = document.getElementById('status');
-        const errorEl   = document.getElementById('errorMsg');
+        const inputEl    = document.getElementById('inputText');
+        const btnEl      = document.getElementById('simplifyBtn');
+        const spinnerEl  = document.getElementById('spinnerWrap');
+        const errorEl    = document.getElementById('errorMsg');
         const resultCard = document.getElementById('resultCard');
-        const resultEl  = document.getElementById('resultContent');
-        const metaEl    = document.getElementById('resultMeta');
-
-        const MAX_CHARS = 3000;
+        const resultEl   = document.getElementById('resultContent');
+        const metaEl     = document.getElementById('resultMeta');
         const charCountEl = document.getElementById('charCount');
+        const MAX_CHARS  = 3000;
 
         function updateCharCount() {
             const len = inputEl.value.length;
@@ -282,8 +474,9 @@
             hideError();
             resultCard.classList.remove('visible');
             btnEl.disabled = true;
-            statusEl.innerHTML = '<span class="spinner"></span> Processing... This may take up to 20 seconds.';
 
+            /* Show spinner */
+            spinnerEl.classList.add('active');
             const startTime = performance.now();
 
             try {
@@ -301,35 +494,47 @@
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
                 resultEl.innerHTML = marked.parse(data.result);
-                metaEl.textContent = `Completed in ${elapsed}s`;
+                metaEl.textContent = `Completed in ${elapsed} s`;
                 resultCard.classList.add('visible');
+                resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             } catch (err) {
-                showError(`Network error: ${err.message}`);
+                showError(`Request failed: ${err.message}`);
             } finally {
+                spinnerEl.classList.remove('active');
                 btnEl.disabled = false;
-                statusEl.innerHTML = '';
             }
         }
 
         function clearAll() {
             inputEl.value = '';
+            updateCharCount();
             resultCard.classList.remove('visible');
             hideError();
-            statusEl.innerHTML = '';
+            spinnerEl.classList.remove('active');
         }
 
         function showError(msg) {
             errorEl.textContent = msg;
             errorEl.classList.add('visible');
         }
+
         function hideError() {
             errorEl.classList.remove('visible');
         }
 
-        /* Ctrl/Cmd + Enter to submit */
+        function copyResult() {
+            const text = resultEl.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const label = document.getElementById('copyLabel');
+                label.textContent = '✓ Copied';
+                setTimeout(() => { label.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        /* Ctrl/Cmd + Enter */
         inputEl.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') simplify();
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); simplify(); }
         });
     </script>
 </body>
