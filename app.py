@@ -15,12 +15,29 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from simplifier import TextSimplifier
 
 load_dotenv()
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Rate limiting (in-memory, resets on restart)
+# ---------------------------------------------------------------------------
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=[],
+    storage_uri="memory://",
+)
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
 
 # ---------------------------------------------------------------------------
 # Model configurations
@@ -65,6 +82,8 @@ def index():
 
 
 @app.route("/simplify", methods=["POST"])
+@limiter.limit("15 per hour")
+@limiter.limit("150 per day")
 def simplify():
     """API endpoint — accepts JSON, returns simplified text."""
     data = request.get_json(silent=True) or {}
@@ -75,7 +94,7 @@ def simplify():
         return jsonify({"error": "No text provided."}), 400
 
     if len(text) > 3000:
-        return jsonify({"error": "Text exceeds the 2 000 character limit."}), 400
+        return jsonify({"error": "Text exceeds the 3 000 character limit."}), 400
 
     try:
         simplifier = _get_simplifier(model_key)
