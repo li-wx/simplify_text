@@ -75,7 +75,8 @@ is essential, briefly explain it in parentheses.
 details.
 4. **No Ambiguity**: Use clear, precise language.
 5. **Separate sections**:
-   - "Key Points": list main, critical points only. Include at most 10 points here.
+   - "Key Points": list main, critical points only. Include at most 9 points here. \
+    Do not list more than 9 points in this section.
    - "Additional Details": move non-critical points, minor context, \
 extra explanations of any unresolved ambiguities here. \
 Write "None." if empty.
