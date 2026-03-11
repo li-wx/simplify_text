@@ -403,7 +403,7 @@
         <!-- Input -->
         <div class="card">
             <div class="card-label">Input</div>
-            <textarea id="inputText" maxlength="5000" placeholder="Paste your text here and I'll simplify it into clear, plain language for you."></textarea>
+            <textarea id="inputText" maxlength="7000" placeholder="Paste your text here and I'll simplify it into clear, plain language for you."></textarea>
             <div class="input-footer">
                 <span class="char-count" id="charCount">0 / 5 000</span>
                 <div class="input-actions">
@@ -456,7 +456,7 @@
         const resultEl   = document.getElementById('resultContent');
         const metaEl     = document.getElementById('resultMeta');
         const charCountEl = document.getElementById('charCount');
-        const MAX_CHARS  = 5000;
+        const MAX_CHARS  = 7000;
 
         function updateCharCount() {
             const len = inputEl.value.length;

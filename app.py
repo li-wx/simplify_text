@@ -94,7 +94,7 @@ def simplify():
         return jsonify({"error": "No text provided."}), 400
 
     if len(text) > 5000:
-        return jsonify({"error": "Text exceeds the 5 000 character limit."}), 400
+        return jsonify({"error": "Text exceeds the 7 000 character limit."}), 400
 
     try:
         simplifier = _get_simplifier(model_key)
