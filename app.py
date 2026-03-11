@@ -93,7 +93,7 @@ def simplify():
     if not text:
         return jsonify({"error": "No text provided."}), 400
 
-    if len(text) > 5000:
+    if len(text) > 7000:
         return jsonify({"error": "Text exceeds the 7 000 character limit."}), 400
 
     try:

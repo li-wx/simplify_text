@@ -460,7 +460,7 @@
 
         function updateCharCount() {
             const len = inputEl.value.length;
-            charCountEl.textContent = `${len.toLocaleString()} / 5 000`;
+            charCountEl.textContent = `${len.toLocaleString()} / ${MAX_CHARS.toLocaleString()}`;
             charCountEl.classList.toggle('over', len > MAX_CHARS);
         }
         inputEl.addEventListener('input', updateCharCount);
